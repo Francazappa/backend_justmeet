@@ -1,19 +1,20 @@
 {
-  "name": "backend_justmeet",
+  "name": "backend_justmeet_4",
   "version": "1.0.0",
-  "description": "",
+  "description": "semplice backend per il progetto di ids e pawm ",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js"
   },
-  "author": "",
+  "author": "simone.francalancia@gmail.com",
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^17.1.0",
+    "@hapi/joi-date": "^2.0.1",
+    "date-and-time": "^0.13.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "date-and-time": "^0.13.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",

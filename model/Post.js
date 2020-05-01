@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
-const User = require('./User');
 
 /*
 Questo è il formato effettivo del post salvato su mongodb.
@@ -24,7 +23,6 @@ const postSchema = new mongoose.Schema({
         type: String,
         min: 4,
         max: 128,
-        default: true,
         required: true
     },
 
@@ -68,20 +66,31 @@ const postSchema = new mongoose.Schema({
 
     // user -> date picker
     dateOfEvent: {
-        type: Date,
+        type: String,
         required: true
     },
 
-    // auto
+    // user -> date picker
+    timeOfEvent: {
+        type: String,
+        required: true
+    },
+
+    // auto -> data pubblicazione del post
     dateOfPublishing: {
-        type: Date,
-        default: Date.now
+        type: String
+    },
+
+    // auto -> data pubblicazione del post
+    timeOfPublishing: {
+        type: String
     }
 
 });
 
 // è il campo postID, questo plugin permette di effettuarne l'auto incremento ogni volta che viene creato un nuovo post
 postSchema.plugin(AutoIncrement,  {inc_field: 'postID'});
+
 
 module.exports = postSchema;
 module.exports = mongoose.model('Post', postSchema);

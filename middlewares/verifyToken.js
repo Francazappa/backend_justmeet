@@ -17,12 +17,11 @@ function verifyToken(req, res, next){
         // verifica validità token
         const verified = jwt.verify(token, process.env.TOKEN_SECRET);
         req.user = verified;
-        
-        // proceed
+
         next();
 
     }catch(err){
-        res.status(400).send('Invalid token');
+        res.status(400).send('ERROR: Invalid token' + err);
     }
 
 }

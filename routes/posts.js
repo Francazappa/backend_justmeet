@@ -1,11 +1,18 @@
 const router = require('express').Router();
 const Post = require('../model/Post'); // DB posts
 const User = require('../model/User'); // DB utenti
+const DeletedPost = require('../model/DeletedPost'); // DB post eliminati
+const mongoose = require('mongoose');
 const { postValidation } = require('../validation');
+const { dateTrimmer, timeTrimmer, getCurrentDate, getCurrentTime } = require('../functions/timeFunctions');
+const { removeA } = require('../functions/commonFunctions');
 const jwt = require('jsonwebtoken');
 const verifyToken = require('../middlewares/verifyToken');
+const isAdmin = require('../middlewares/isAdmin');
+
 
 // Definizione delle varie routes per i post
+
 
 // get tutti i post
 router.get('/', verifyToken, async (req, res) => {
@@ -13,7 +20,7 @@ router.get('/', verifyToken, async (req, res) => {
     try{
         const posts = await Post.find();
         res.json(posts.reverse()); // per i post in ordine cronologico
-    } catch(err){
+    }catch(err){
         res.json({ message: err });
     }
 
@@ -21,18 +28,21 @@ router.get('/', verifyToken, async (req, res) => {
 
 
 // get post specifico
-router.get('/:postID', async (req, res) => {
+router.get('/:postID', verifyToken, async (req, res) => {
 
     const post = await Post.findOne({postID: req.params.postID});
     if( ! post) res.status(404).send('ERROR: post [' + req.params.postID + '] not found');
 
-    res.send(post);
+    res.json(post);
 
 });
 
 
 // crea un nuovo post e aggiorna postsCreated dell'user che lo crea
 router.post('/', verifyToken, async (req, res) => {
+
+    req.body.dateOfEvent = dateTrimmer(req.body.dateOfEvent); // formatta data
+    req.body.timeOfEvent = timeTrimmer(req.body.timeOfEvent); // formatta ora
 
     const { error } = postValidation(req.body); // post validation -> joi
     if(error) res.status(400).send(error.details[0].message);
@@ -42,29 +52,38 @@ router.post('/', verifyToken, async (req, res) => {
     const user = await User.findOne({userID: decoded.userID});
     if( ! user) res.status(404).send('ERROR: user [' + req.params.userID + '] not found');
 
+    const appDateOfPublishing = getCurrentDate();
+    const appTimeOfPublishing = getCurrentTime();
+
     // CREAZIONE NUOVO POST
     const post = new Post({
 
-        publisher: user.nickname,
+        publisher: user.username,
+
         activity: req.body.activity,
         title: req.body.title,
         details: req.body.details,
         place: req.body.place,
         maxPartecipants: req.body.maxPartecipants,
-        dateOfEvent: req.body.dateOfEvent
+
+        dateOfEvent: req.body.dateOfEvent,
+        timeOfEvent: req.body.timeOfEvent,
+
+        dateOfPublishing: appDateOfPublishing,
+        timeOfPublishing: appTimeOfPublishing
 
     });
 
     const savedPost = await post.save();
-    if( ! savedPost) res.status(500).send('ERROR: couldn\'t save the post');
+    if( ! savedPost) res.status(500).send('SERVER ERROR: couldn\'t save the post');
 
     // aggiorna array user
     user.postsCreated.push(savedPost.postID);
 
     const savedUser = await user.save();
-    if( ! savedUser) res.status(500).send('ERROR: couldn\'t update the user\'s post list');
+    if( ! savedUser) res.status(500).send('SERVER ERROR: couldn\'t update the user\'s post list');
 
-    res.send('SUCCESS: user [' + savedUser.nickname + '] created post with id [' + savedPost.postID + ']');
+    res.send('SUCCESS: user [' + savedUser.username + '] created post with id [' + savedPost.postID + ']');
 
 });
 
@@ -80,11 +99,11 @@ router.patch('/:postID/join', verifyToken, async (req, res) => {
     const user = await User.findOne({userID: decoded.userID});
     if( ! user) res.status(404).send('ERROR: user [' + req.params.userID + '] not found');
  
-    if(post.partecipants.includes(user.nickname)) return res.status(400).send('ERROR: user [' + user.nickname + '] already partecipating');
+    if(post.partecipants.includes(user.username)) return res.status(400).send('ERROR: user [' + user.username + '] already partecipating');
     if(post.partecipants.length >= post.maxPartecipants) return res.status(400).send('ERROR: post with id [' + post.postID +'] is full');
  
     // partecipa al post
-    post.partecipants.push(user.nickname);
+    post.partecipants.push(user.username);
 
     const savedPost = await post.save();
     if( ! savedPost) res.status(500).send('ERROR: couldn\'t update the post');
@@ -95,7 +114,7 @@ router.patch('/:postID/join', verifyToken, async (req, res) => {
     const savedUser = await user.save();
     if( ! savedUser) res.status(500).send('ERROR: couldn\'t update the user\'s post list');
 
-    res.send('SUCCESS: user [' + savedUser.nickname + '] is now partecipating to post with id [' + savedPost.postID + ']');
+    res.send('SUCCESS: user [' + savedUser.username + '] is now partecipating to post with id [' + savedPost.postID + ']');
 
 });
 
@@ -111,10 +130,10 @@ router.patch('/:postID/leave', verifyToken, async (req, res) => {
     const user = await User.findOne({userID: decoded.userID});
     if( ! user) res.status(404).send('ERROR: user [' + req.params.userID + '] not found');
  
-    if( ! post.partecipants.includes(user.nickname)) return res.status(400).send('ERROR: user [' + user.nickname + '] is not partecipating');
+    if( ! post.partecipants.includes(user.username)) return res.status(400).send('ERROR: user [' + user.username + '] is not partecipating');
 
     // departecipa al post
-    removeA(post.partecipants, user.nickname);
+    removeA(post.partecipants, user.username);
 
     const savedPost = await post.save();
     if( ! savedPost) res.status(500).send('ERROR: couldn\'t update the post');
@@ -125,43 +144,102 @@ router.patch('/:postID/leave', verifyToken, async (req, res) => {
     const savedUser = await user.save();
     if( ! savedUser) res.status(500).send('ERROR: couldn\'t update the user\'s post list');
 
-    res.send('SUCCESS: user [' + savedUser.nickname + '] leaved the post with id [' + savedPost.postID + ']');
+    res.send('SUCCESS: user [' + savedUser.username + '] leaved the post with id [' + savedPost.postID + ']');
 
 });
 
-// elimina post
+
+// elimina collezione post
+router.delete('/', verifyToken, isAdmin, async (req, res) => {
+
+    try{
+        mongoose.connection.db.dropCollection('posts', () => {
+
+            console.log("SUCCESS: admin [" + req.decoded.username + "] DELETED posts collection");
+            res.send("SUCCESS: admin [" + req.decoded.username + "] DELETED posts collection");
+    
+        });
+    }catch(err){
+        console.log("erorr while dropping posts collection" + err);
+    }
+
+});
+
+
+// elimina post specifico
 router.delete('/:postID', verifyToken, async (req, res) => {
 
     const post = await Post.findOne({postID: req.params.postID});
     if( ! post) res.status(404).send('ERROR: post [' + req.params.postID + '] not found');
 
     const decoded = jwt.decode(req.header('auth-token'), process.env.TOKEN_SECRET);
+
     const maybeAdmin = await User.findOne({userID: decoded.userID});
 
     if(maybeAdmin.isAdmin){
-        post.delete();
-        res.send('SUCCESS: admin [' + maybeAdmin.nickname +'] deleted post with id [' + post.postID  + ']');
-    } else if(decoded.nickname == post.publisher){
-        post.delete();
-        res.send('SUCCESS: user [' + decoded.nickname +'] deleted post with id [' + post.postID + ']');
+
+        try{
+            moveToTrash(post);
+            post.delete();
+    
+            res.send('SUCCESS: admin [' + maybeAdmin.username +'] deleted post with id [' + post.postID  + ']');
+        }catch(err){
+            console.log("admin error while deleting specific post" + err);
+        }
+
+    } else if(decoded.username == post.publisher){
+
+        try{
+            moveToTrash(post);
+            post.delete();
+    
+            res.send('SUCCESS: admin [' + maybeAdmin.username +'] deleted post with id [' + post.postID  + ']');
+        }catch(err){
+            console.log("user error while deleting specific post" + err);
+        }
+
     } else {
-        res.status(401).send('ERROR: user [' + decoded.nickname + '] is not authorized to delete post with id [' + post.postID + ']');
-    }    
+        res.status(401).send('ERROR: user [' + maybeAdmin.username + '] is not authorized to delete post with id [' + post.postID + ']');
+    }
     
 });
 
 
+// =========================================================================================================================================
 
-// rimuove un elemento da un array tramite valore
-function removeA(arr) {
-    var what, a = arguments, L = a.length, ax;
-    while (L > 1 && arr.length) {
-        what = a[--L];
-        while ((ax= arr.indexOf(what)) !== -1) {
-            arr.splice(ax, 1);
-        }
-    }
-    return arr;
+
+async function moveToTrash(postToDelete){
+
+    const appDateOfDeleting = getCurrentDate();
+    const appTimeOfDeleting = getCurrentTime();
+    
+    const deleted = new DeletedPost({
+
+        publisher: postToDelete.username,
+
+        activity: postToDelete.activity,
+        title: postToDelete.title,
+        details: postToDelete.details,
+        place: postToDelete.place,
+        maxPartecipants: postToDelete.maxPartecipants,
+
+        dateOfEvent: postToDelete.dateOfEvent,
+        timeOfEvent: postToDelete.timeOfEvent,
+
+        dateOfPublishing: postToDelete.dateOfPublishing,
+        timeOfPublishing: postToDelete.timeOfPublishing,
+
+        dateOfDeleting: appDateOfDeleting,
+        timeOfDeleting: appTimeOfDeleting,
+
+        deadPostID: postToDelete.postID
+
+    });
+
+    const deletedPost = await deleted.save();
+    if( ! deletedPost) res.status(500).send("SERVER ERROR: couldn't move the post to delete in the trashbin");
+
 }
+
 
 module.exports = router;

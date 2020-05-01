@@ -12,25 +12,24 @@ app.use(cors());
 
 
 // imported routes
-const userRoute = require('./routes/users');
-const postRoute = require('./routes/posts');
+const usersRoute = require('./routes/users');
+const postsRoute = require('./routes/posts');
+const ratingRoute = require('./routes/rating');
+const deletedRoute = require('./routes/deleted');
 
 
 // route middlewares
-app.use('/api/users', userRoute);
-app.use('/api/posts', postRoute);
-
-
-app.get('/', (req, res) => {
-    res.send('home route');
-});
+app.use('/api/users', usersRoute);
+app.use('/api/posts', postsRoute);
+app.use('/api/rating', ratingRoute);
+app.use('/api/deleted', deletedRoute);
 
 
 // db connection ==================================================================
 mongoose.connect(
     process.env.DB_CONNECTION_URI,
-    { useNewUrlParser: true, useUnifiedTopology: true },
-    () => console.log('connected to DB!')
+    { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true},
+    () => console.log('connected to data base')
 );
 
 var db = mongoose.connection;

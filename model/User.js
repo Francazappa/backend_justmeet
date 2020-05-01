@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
+const Rating = require('./Rating');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
-
 // Questo è il formato dell'utente in mongodb
 
 const userSchema = new mongoose.Schema({
@@ -13,9 +13,9 @@ const userSchema = new mongoose.Schema({
     },
 
     // user -> form
-    nickname: {
+    username: {
         type: String,
-        min: 4,
+        min: 3,
         max: 24,
         required: true
     },
@@ -46,10 +46,9 @@ const userSchema = new mongoose.Schema({
         type: [Number],
     },
 
-    // "auto" -> quando gli altri utenti voteranno un utente, quel voto sarà salvato in questo array.
     // Viene utilizzato per calcolare la media.
     allRatings: {
-        type: [Number]
+        type: [Rating] // è un array di oggetti {utente, voto}
     },
 
     // auto -> la media dei voti salvati in allRatings viene salvata qui.
@@ -62,13 +61,18 @@ const userSchema = new mongoose.Schema({
     
     // auto
     registerDate: {
-        type: Date,
-        default: Date.now
+        type: String,
+    },
+
+    registerTime: {
+        type: String,
     }
 
 });
 
+
 // Campo userID, questo plugin permette di effettuarne l'auto incremento ogni volta che viene creato un nuovo utente
 userSchema.plugin(AutoIncrement,  {inc_field: 'userID'});
+
 
 module.exports = mongoose.model('User', userSchema);
