@@ -67,10 +67,10 @@ POST API =======================================================================
 
    -> drop 'posts' collection on db:           (admin)  DELETE  http://localhost:8080/api/posts
 
-========================================================================================================================================================
+=========================================================================================================================================================
 
 
-RATING API =============================================================================================================================================
+RATING API ==============================================================================================================================================
 
    -> get a specific user's rating:                     GET     http://localhost:8080/api/rating/:userID 
 
@@ -105,10 +105,10 @@ DELETED API ====================================================================
    activity: string, min: 4, max: 128 characters
    title:    string, min: 4, max: 64 characters
    details:  string, min: 4, max: 2048 characters (only field that can be omitted)
-   place:	 string, min: 4, max: 64 characters
+   place:    string, min: 4, max: 64 characters
    maxPartecipants: integer, min: 1, max 64
 4* dateOfEvent: string, min: "now", max: not defined (format: "day-month-year" -> ex: "17-04-2021")
-5*	timeOfEvent: string, max: not defined (format: "hours:minutes" -> ex: "18:50")
+5* timeOfEvent: string, min: not defined, max: not defined (format: "hours:minutes" -> ex: "18:50")
 
 
 	-> rating:
