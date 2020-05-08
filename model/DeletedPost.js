@@ -1,60 +1,45 @@
 const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 
+/*
+
+extends post, aggiunge questi 3 campi
+
+    dateOfDeleting: String,
+
+    timeOfDeleting: String,
+
+    deadPostID: Number
+
+*/
 
 const deletedPostSchema = new mongoose.Schema({
 
-    publisher: {
-        type: String,
-    },
+    publisher: String,
+
+    activity: String,
+
+    title: String,
+
+    details: String,
+
+    place: String,
     
-    activity: {
-        type: String
-    },
+    maxPartecipants: Number,
 
-    title: {
-        type: String
-    },
+    dateOfEvent: String,
 
-    details: {
-        type: String,
-    },
+    timeOfEvent: String,
 
-    place: {
-        type: String,
-    },
-    
-    maxPartecipants: {
-        type: Number,
-    },
+    dateOfPublishing: String,
 
-    dateOfEvent: {
-        type: String,
-    },
+    timeOfPublishing: String,
 
-    timeOfEvent: {
-        type: String,
-    },
+    dateOfDeleting: String,
 
-    dateOfPublishing: {
-        type: String
-    },
+    timeOfDeleting: String,
 
-    timeOfPublishing: {
-        type: String
-    },
-
-    dateOfDeleting: {
-        type: String
-    },
-
-    timeOfDeleting: {
-        type: String
-    },
-
-    deadPostID: {
-        type: Number
-    }
+    deadPostID: Number
 
 
 });

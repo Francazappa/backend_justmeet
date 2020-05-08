@@ -7,8 +7,6 @@ data: req.body.dateOfEvent -> ex: "2021-04-20T18:28:40.375+02:00"
 formato accettato -> "17-04-2020" */
 function dateTrimmer(reqDate){
 
-    const today = new Date();
-
     const year = reqDate.slice(0, 4);
     const month = reqDate.slice(5, 7);
     const day = reqDate.slice(8, 10);

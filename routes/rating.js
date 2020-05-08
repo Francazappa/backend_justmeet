@@ -1,7 +1,12 @@
 const router = require('express').Router();
-const User = require('../model/User');
+
+const jwt = require('jsonwebtoken');
+
 const verifyToken = require('../middlewares/verifyToken');
-const verifyRating = require('../middlewares/verifyRating');
+const { ratingValidation } = require('../functions/validation');
+
+const RatingController = require('../controllers/RatingController');
+const ratingController = new RatingController();
 
 
 // req contiene: rating -> <0-10> -> int
@@ -10,62 +15,27 @@ const verifyRating = require('../middlewares/verifyRating');
 // ottieni il rating di uno specifico utente
 router.get('/:userID', verifyToken, async (req, res) => {
     
-    const user = await User.findOne({userID: req.params.userID});
-    if( ! user) res.status(404).send('ERROR: user [' + req.params.userID + '] not found');
-    
-    res.send(user.rating);
+    var result = await ratingController.getRating(req.params.userID);
+    res.status(result[0]).json(result[1]);
     
 });
 
 
 // vota un utente
-router.post('/:userID', verifyToken, verifyRating, async (req, res) => {
+router.post('/:userID', verifyToken, async (req, res) => {
 
-    /*
-    a questo punto next() è stata hittata e posso votare.
-    Inoltre ora req contiene:
-        - req.votingUser
-        - req.userToVote
-    */
+    const { error } = ratingValidation(req.body);
+    if(error) res.status(400).send(error.details[0].message);
 
-    const votingUser =  req.votingUser;
-    const userToVote =  req.userToVote;
+    const decoded = jwt.decode(req.header('auth-token'), process.env.TOKEN_SECRET);
 
-    const votedBy = votingUser.userID;
-    const vote = req.body.rating; 
-
-    // non effettuo controlli sull'input del voto perché ci pensa joi in validation.js
-    userToVote.allRatings.push({votedBy, vote});
-    userToVote.rating = calculateAverageRating(userToVote.allRatings);
-
-    try{
-        const savedUser = await userToVote.save();
-        res.send('SUCCESS: user [' + savedUser.username + '] has now an average rating of [' + savedUser.rating +']');
-    }catch(err){
-        res.status(400).send(err);
-    }
+    var result = await ratingController.rate(decoded, req.params.userID, req.body);
+    res.status(result[0]).send(result[1]);
 
 });
 
-// =========================================================================================================================================
 
-
-function calculateAverageRating(arrCoppia){
-
-    let app = []
-
-    for(i = 0; i < arrCoppia.length; i++){
-
-        app.push(arrCoppia[i].vote);
-        
-    }
-
-    avg = app.reduce((a, b) => a + b, 0)/app.length;
-    avg = avg.toFixed(1); // 1 numero dopo la virgola
-    
-    return avg;
-
-}
+// delete rating?
 
 
 module.exports = router;
