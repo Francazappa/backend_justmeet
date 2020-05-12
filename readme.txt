@@ -15,9 +15,6 @@
        |_|                                                                               
 
 
-wrote by Simone Francalancia,
-you can contact me at my email: simone.francalancia@gmail.com
-
 
 1) download and install nodejs on your pc:
    -> https://nodejs.org/it/
@@ -132,7 +129,7 @@ DELETED API ====================================================================
 |        So they need to be setted back to their original types which is int32.                                                                         |
 |        Today (08/05/2020) the fields that needs to be manually resetted are 'rating', 'userID' and '_v'.                                              |
 |                                                                                                                                                       |
-|        If done correctly it should work fine (look at the photo in this folder for a visual reference).                                               |
+|        If done correctly it will work fine (look at the photo in this folder for a visual reference).                                                 |
 |                                                                                                                                                       |
 |                                                                                                                                                       |
 |                                                                                                                                                       |
@@ -143,13 +140,14 @@ DELETED API ====================================================================
 Notes:
 
    *1: if the mail inserted while registering is a true gmail, the system will send an actual email to the user with the reminder,
-       otherwise the user will just not be notified and the system will keep running without anyproblems.
+       otherwise the user will just not be notified and the system will keep running without any problems.
 
 
    *2: (admin) means the call requires admin privileges to be performed.
 
 
    *3: whenever a delete call on a specific post is performed, the post is not deleted but it is stored in the 'deletedposts' collection in the database.
+       (This will not be true if the 'posts' collection is dropped)
 
 
    *4: the systems looks for a string formatted in an European way ("20-04-2020") but the frontend sends
@@ -164,3 +162,29 @@ Notes:
        So the server runs the timeTrimmer(reqTime) function to trim and reassemble the time correctly.
 
       ->   timeTrimmer("2020-04-20T04:20:40.375+02:00") outputs "04:20"
+
+
+
+
+
+wrote by Simone Francalancia,
+you can contact me at -> simone.francalancia@gmail.com
+
+  _________________________________
+ |.--------_--_------------_--__--.|
+ ||    /\ |_)|_)|   /\ | |(_ |_   ||
+ ;;`,_/``\|__|__|__/``\|_| _)|__ ,:|
+((_(-,-----------.-.----------.-.)`)
+ \__ )        ,'     `.        \ _/
+ :  :        |_________|       :  :
+ |-'|       ,'-.-.--.-.`.      |`-|
+ |_.|      (( (*  )(*  )))     |._|
+ |  |       `.-`-'--`-'.'      |  |
+ |-'|        | ,-.-.-. |       |._|
+ |  |        |(|-|-|-|)|       |  |
+ :,':        |_`-'-'-'_|       ;`.;
+  \  \     ,'           `.    /._/
+   \/ `._ /_______________\_,'  /
+    \  / :   ___________   : \,'
+     `.| |  |           |  |,'
+       `.|  |           |  |

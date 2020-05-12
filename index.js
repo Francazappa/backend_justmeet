@@ -6,6 +6,9 @@ dotenv.config();
 const cors = require('cors');
 
 
+console.log('\n' + '----- | JUST MEET\'S SERVER | -----' + '\n');
+
+
 // middlewares
 app.use(express.json());
 app.use(cors());
@@ -27,9 +30,9 @@ app.use('/api/deleted', deletedRoute);
 
 // db connection ==================================================================
 mongoose.connect(
-    process.env.DB_CONNECTION_URI,
+    process.env.DB_CONNECTION_STRING,
     { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true},
-    () => console.log('connected to data base')
+    () => console.log('- connected to data base')
 );
 
 var db = mongoose.connection;
@@ -39,4 +42,4 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // server port
 const port = process.env.PORT;
-app.listen(port, () => console.log('server listening on port ' + port));
+app.listen(port, () => console.log('- listening on port ' + port));
