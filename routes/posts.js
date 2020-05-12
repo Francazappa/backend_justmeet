@@ -38,7 +38,7 @@ router.post('/', verifyToken, async (req, res) => {
     req.body.timeOfEvent = timeTrimmer(req.body.timeOfEvent); // formatta ora
 
     const { error } = postValidation(req.body); // post validation -> joi
-    if(error) res.status(400).send(error.details[0].message);
+    if(error) return res.status(400).send(error.details[0].message);
 
     const decoded = jwt.decode(req.header('auth-token'), process.env.TOKEN_SECRET); // decoding jwt
 

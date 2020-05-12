@@ -25,7 +25,7 @@ router.get('/:userID', verifyToken, async (req, res) => {
 router.post('/:userID', verifyToken, async (req, res) => {
 
     const { error } = ratingValidation(req.body);
-    if(error) res.status(400).send(error.details[0].message);
+    if(error) return res.status(400).send(error.details[0].message);
 
     const decoded = jwt.decode(req.header('auth-token'), process.env.TOKEN_SECRET);
 
@@ -33,9 +33,6 @@ router.post('/:userID', verifyToken, async (req, res) => {
     res.status(result[0]).send(result[1]);
 
 });
-
-
-// delete rating?
 
 
 module.exports = router;

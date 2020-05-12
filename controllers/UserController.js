@@ -1,4 +1,5 @@
 const User = require('../model/User');
+const Post = require('../model/Post');
 const mongoose = require('mongoose');
 
 class UserController {
@@ -22,9 +23,14 @@ class UserController {
     
         const user = await User.findOne({userID: id});
         if( ! user) return [404, 'ERROR: user [' + id + '] not found'];
-    
-        return [200, user];
-    
+
+        try{
+            await postsCleaner(user);
+            return [200, user];
+        }catch{
+            return [500, 'SERVER ERROR: couldn\'t update postsCreated or postsPartecipating'];
+        }
+
     }
     
 
@@ -56,6 +62,44 @@ class UserController {
             return [500, 'SERVER ERROR: couldn\'t delete user']
         }
     
+    }
+
+}
+
+
+// =========================================================================================================================================
+
+
+// aggiorna postsCreated e postsPartecipating di un utente con i post esistenti (rimuove quelli inesistenti)
+async function postsCleaner(user){
+    
+    const newArr1 = [];
+    const newArr2 = [];
+
+    // creo newArr1 con i postsCreated che esistono
+    for(i = 0; i < user.postsCreated.length; i++){
+        
+        const post = await Post.find({postID: user.postsCreated[i]});
+        if( post.length > 0) newArr1.push(user.postsCreated[i]);
+
+    }
+
+    // creo newArr2 con i postsPartecipating che esistono
+    for(i = 0; i < user.postsPartecipating.length; i++){
+        
+        const post = await Post.find({postID: user.postsPartecipating[i]});
+        if( post.length > 0) newArr2.push(user.postsPartecipating[i]);
+
+    }
+
+    // aggiorno gli array dell'user
+    user.postsCreated = newArr1;
+    user.postsPartecipating = newArr2;
+
+    try{
+        await user.save();
+    }catch(err){
+        console.log("postsCleaner error");
     }
 
 }

@@ -64,8 +64,7 @@ router.delete('/:userID', verifyToken, isAdmin, async (req, res) => {
     var decoded = jwt.decode(req.header('auth-token'), process.env.TOKEN_SECRET); // decoding jwt
 
     var result = await userController.deleteUser(decoded, req.params.userID);
-    //res.status(result[0]).send(result[1]);
-    res.send(result[1]);
+    res.status(result[0]).send(result[1]);
 
 });
 

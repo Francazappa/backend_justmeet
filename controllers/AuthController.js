@@ -21,8 +21,16 @@ class AuthController {
     
         // CREAZIONE E ASSEGNAZIONE JWT: se l'utente è in possesso del token può fare azioni -> private routes middlewares
         const token = jwt.sign({ userID: user.userID, username: user.username }, process.env.TOKEN_SECRET);
+
+        var userJson = {
+
+            "userID": user.userID,
+            "username": user.username,
+            "email": user.email,
+            "rating": user.rating
+        }
     
-        return [200, token, user];
+        return [200, token, userJson];
     
     }
     
@@ -41,8 +49,8 @@ class AuthController {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword  = await bcrypt.hash(registerData.password, salt); // hashing pw with salt
     
-        const appRegisterDate = getCurrentDate();
-        const appRegisterTime = getCurrentTime();
+        var appRegisterDate = getCurrentDate();
+        var appRegisterTime = getCurrentTime();
     
         // CREAZIONE NUOVO UTENTE:
         const user = new User({
@@ -69,40 +77,3 @@ class AuthController {
 
 
 module.exports = AuthController;
-
-
-// ==============================================================================================================================
-
-// non implementata ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-async function postsCleaner(user){
-    
-    const newArr1 = [];
-    const newArr2 = [];
-
-    // creo newArr1 con i postsCreated che esistono
-    for(i = 0; i < user.postsCreated.length; i++){
-        
-        const post = await Post.find({postID: user.postsCreated[i]});
-        if( post.length > 0) newArr1.push(user.postsCreated[i]);
-
-    }
-
-    // creo newArr2 con i postsPartecipating che esistono
-    for(i = 0; i < user.postsPartecipating.length; i++){
-        
-        const post = await Post.find({postID: user.postsPartecipating[i]});
-        if( post.length > 0) newArr2.push(user.postsPartecipating[i]);
-
-    }
-
-    // aggiorno gli array dell'user
-    user.postsCreated = newArr1;
-    user.postsPartecipating = newArr2;
-
-    try{
-        await user.save();
-    }catch(err){
-        console.log("postsCleaner error");
-    }
-
-}

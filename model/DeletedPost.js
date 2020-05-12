@@ -1,16 +1,12 @@
 const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 
-/*
+/* 
+"extends" post, aggiunge questi 3 campi:
 
-extends post, aggiunge questi 3 campi
-
-    dateOfDeleting: String,
-
-    timeOfDeleting: String,
-
-    deadPostID: Number
-
+    - dateOfDeleting: String,
+    - timeOfDeleting: String,
+    - deadPostID: Number
 */
 
 const deletedPostSchema = new mongoose.Schema({
@@ -41,10 +37,10 @@ const deletedPostSchema = new mongoose.Schema({
 
     deadPostID: Number
 
-
 });
 
 deletedPostSchema.plugin(AutoIncrement,  {inc_field: 'deletedPostID'});
+
 
 module.exports = deletedPostSchema;
 module.exports = mongoose.model('DeletedPost', deletedPostSchema);

@@ -31,9 +31,9 @@ async function sendEmail(post){
 
     transporter.sendMail(mailOptions, function(error, info){
         if (error) {
-          console.log('email not sent ' + error);
+          console.log('emails not sent ' + error);
         } else {
-          console.log('SUCCESS: email sent ' + info.response);
+          console.log('SUCCESS: emails sent ' + info.response);
         }
       });
 
